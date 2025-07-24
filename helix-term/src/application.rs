@@ -1066,6 +1066,26 @@ impl Application {
                         let result = self.handle_show_document(params, offset_encoding);
                         Ok(json!(result))
                     }
+<                    Ok(MethodCall::WorkspaceDiagnosticRefresh) => {
+                        let language_server = language_server!().id();
+
+                        let documents: Vec<_> = self
+                            .editor
+                            .documents
+                            .values()
+                            .filter(|x| x.supports_language_server(language_server))
+                            .map(|x| x.id())
+                            .collect();
+
+                        for document in documents {
+                            handlers::diagnostics::request_document_diagnostics(
+                                &mut self.editor,
+                                document,
+                                false,
+                            );
+                        }
+
+                        Ok(serde_json::Value::Null)}
                     Ok(MethodCall::Other(event_name, params)) => {
                         let server_id = server_id;
 

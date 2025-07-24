@@ -1,6 +1,7 @@
 pub(crate) mod dap;
 pub(crate) mod engine;
 pub(crate) mod lsp;
+pub(crate) mod syntax;
 pub(crate) mod typed;
 
 pub use dap::*;
@@ -15,6 +16,7 @@ pub use lsp::*;
 
 pub use engine::ScriptingEngine;
 
+pub use syntax::*;
 use tui::{
     text::{Span, Spans},
     widgets::Cell,
@@ -421,9 +423,13 @@ impl MappableCommand {
         buffer_picker, "Open buffer picker",
         jumplist_picker, "Open jumplist picker",
         symbol_picker, "Open symbol picker",
+        syntax_symbol_picker, "Open symbol picker from syntax information",
+        lsp_or_syntax_symbol_picker, "Open symbol picker from LSP or syntax information",
         changed_file_picker, "Open changed file picker",
         select_references_to_symbol_under_cursor, "Select symbol references",
         workspace_symbol_picker, "Open workspace symbol picker",
+        syntax_workspace_symbol_picker, "Open workspace symbol picker from syntax information",
+        lsp_or_syntax_workspace_symbol_picker, "Open workspace symbol picker from LSP or syntax information",
         diagnostics_picker, "Open diagnostic picker",
         workspace_diagnostics_picker, "Open workspace diagnostic picker",
         last_picker, "Open last picker",
@@ -955,7 +961,7 @@ fn kill_to_line_start(cx: &mut Context) {
         move |text, range| {
             let line = range.cursor_line(text);
             let first_char = text.line_to_char(line);
-            let anchor = range.cursor(text);
+            let anchor = range.cursor(text, cx);
             let head = if anchor == first_char && line != 0 {
                 // select until previous line
                 line_end_char_index(&text, line - 1)
@@ -983,7 +989,7 @@ fn kill_to_line_end(cx: &mut Context) {
         |text, range| {
             let line = range.cursor_line(text);
             let line_end_pos = line_end_char_index(&text, line);
-            let pos = range.cursor(text);
+            let pos = range.cursor(text, cx);
 
             // if the cursor is on the newline char delete that
             if pos == line_end_pos {
@@ -4439,7 +4445,7 @@ pub mod insert {
         delete_by_selection_insert_mode(
             cx,
             |text, range| {
-                let pos = range.cursor(text);
+                let pos = range.cursor(text, cx);
                 (pos, graphemes::nth_next_grapheme_boundary(text, pos, count))
             },
             Direction::Forward,
@@ -4452,7 +4458,7 @@ pub mod insert {
             cx,
             |text, range| {
                 let anchor = movement::move_prev_word_start(text, *range, count).from();
-                let next = Range::new(anchor, range.cursor(text));
+                let next = Range::new(anchor, range.cursor(text, cx));
                 let range = exclude_cursor(text, next, *range);
                 (range.from(), range.to())
             },
@@ -4466,7 +4472,7 @@ pub mod insert {
             cx,
             |text, range| {
                 let head = movement::move_next_word_end(text, *range, count).to();
-                (range.cursor(text), head)
+                (range.cursor(text, cx), head)
             },
             Direction::Forward,
         );
@@ -6850,4 +6856,35 @@ fn jump_to_word(cx: &mut Context, behaviour: Movement) {
         }
     }
     jump_to_label(cx, words, behaviour)
+}
+
+fn lsp_or_syntax_symbol_picker(cx: &mut Context) {
+    let doc = doc!(cx.editor);
+
+    if doc
+        .language_servers_with_feature(LanguageServerFeature::DocumentSymbols)
+        .next()
+        .is_some()
+    {
+        lsp::symbol_picker(cx);
+    } else if doc.syntax().is_some() {
+        syntax_symbol_picker(cx);
+    } else {
+        cx.editor
+            .set_error("No language server supporting document symbols or syntax info available");
+    }
+}
+
+fn lsp_or_syntax_workspace_symbol_picker(cx: &mut Context) {
+    let doc = doc!(cx.editor);
+
+    if doc
+        .language_servers_with_feature(LanguageServerFeature::WorkspaceSymbols)
+        .next()
+        .is_some()
+    {
+        lsp::workspace_symbol_picker(cx);
+    } else {
+        syntax_workspace_symbol_picker(cx);
+    }
 }
