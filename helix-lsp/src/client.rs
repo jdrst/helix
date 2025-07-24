@@ -446,6 +446,19 @@ impl Client {
     where
         R::Params: serde::Serialize,
     {
+        self.call_with_timeout_untyped(R::METHOD.to_string(), params, timeout_secs)
+    }
+
+    fn call_with_timeout_untyped<R, U>(
+        &self,
+        method_name: String,
+        params: &R,
+        timeout_secs: u64,
+    ) -> impl Future<Output = Result<U>>
+    where
+        R: serde::Serialize,
+        U: for<'a> serde::Deserialize<'a>,
+    {
         let server_tx = self.server_tx.clone();
         let id = self.next_request_id();
 
@@ -457,7 +470,7 @@ impl Client {
                 let request = jsonrpc::MethodCall {
                     jsonrpc: Some(jsonrpc::Version::V2),
                     id: id.clone(),
-                    method: R::METHOD.to_string(),
+                    method: method_name,
                     params: Self::value_into_params(params),
                 };
                 let (tx, rx) = channel::<Result<Value>>(1);
@@ -1565,44 +1578,7 @@ impl Client {
     }
 
     fn call_non_standard(&self, request: DynamicLspRequest) -> impl Future<Output = Result<Value>> {
-        self.call_non_standard_with_timeout(request, self.req_timeout)
-    }
-
-    fn call_non_standard_with_timeout(
-        &self,
-        request: DynamicLspRequest,
-        timeout_secs: u64,
-    ) -> impl Future<Output = Result<Value>> {
-        let server_tx = self.server_tx.clone();
-        let id = self.next_request_id();
-
-        let params = serde_json::to_value(&request.params);
-        async move {
-            use std::time::Duration;
-            use tokio::time::timeout;
-
-            let request = jsonrpc::MethodCall {
-                jsonrpc: Some(jsonrpc::Version::V2),
-                id: id.clone(),
-                method: (&request.method_name).to_string(),
-                params: Self::value_into_params(params?),
-            };
-
-            let (tx, mut rx) = channel::<Result<Value>>(1);
-
-            server_tx
-                .send(Payload::Request {
-                    chan: tx,
-                    value: request,
-                })
-                .map_err(|e| Error::Other(e.into()))?;
-
-            // TODO: delay other calls until initialize success
-            timeout(Duration::from_secs(timeout_secs), rx.recv())
-                .await
-                .map_err(|_| Error::Timeout(id))? // return Timeout
-                .ok_or(Error::StreamClosed)?
-        }
+        self.call_with_timeout_untyped(request.method_name, &request.params, self.req_timeout)
     }
 }
 
