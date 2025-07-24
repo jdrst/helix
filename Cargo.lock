@@ -1888,12 +1888,8 @@ dependencies = [
  "arc-swap",
  "chrono",
  "content_inspector",
-<<<<<<< HEAD
  "crossterm 0.28.1",
-=======
- "crossterm",
  "dashmap",
->>>>>>> pull-diagnostics
  "fern",
  "futures-util",
  "globset",

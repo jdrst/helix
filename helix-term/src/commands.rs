@@ -961,7 +961,7 @@ fn kill_to_line_start(cx: &mut Context) {
         move |text, range| {
             let line = range.cursor_line(text);
             let first_char = text.line_to_char(line);
-            let anchor = range.cursor(text, cx);
+            let anchor = range.cursor(text);
             let head = if anchor == first_char && line != 0 {
                 // select until previous line
                 line_end_char_index(&text, line - 1)
@@ -989,8 +989,7 @@ fn kill_to_line_end(cx: &mut Context) {
         |text, range| {
             let line = range.cursor_line(text);
             let line_end_pos = line_end_char_index(&text, line);
-            let pos = range.cursor(text, cx);
-
+            let pos = range.cursor(text);
             // if the cursor is on the newline char delete that
             if pos == line_end_pos {
                 (pos, text.line_to_char(line + 1))
@@ -4445,7 +4444,7 @@ pub mod insert {
         delete_by_selection_insert_mode(
             cx,
             |text, range| {
-                let pos = range.cursor(text, cx);
+                let pos = range.cursor(text);
                 (pos, graphemes::nth_next_grapheme_boundary(text, pos, count))
             },
             Direction::Forward,
@@ -4458,7 +4457,7 @@ pub mod insert {
             cx,
             |text, range| {
                 let anchor = movement::move_prev_word_start(text, *range, count).from();
-                let next = Range::new(anchor, range.cursor(text, cx));
+                let next = Range::new(anchor, range.cursor(text));
                 let range = exclude_cursor(text, next, *range);
                 (range.from(), range.to())
             },
@@ -4472,7 +4471,7 @@ pub mod insert {
             cx,
             |text, range| {
                 let head = movement::move_next_word_end(text, *range, count).to();
-                (range.cursor(text, cx), head)
+                (range.cursor(text), head)
             },
             Direction::Forward,
         );

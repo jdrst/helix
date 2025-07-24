@@ -51,6 +51,7 @@ impl Clone for LanguageData {
             syntax: OnceCell::new(),
             indent_query: OnceCell::new(),
             textobject_query: OnceCell::new(),
+            tag_query: OnceCell::new(),
         }
     }
 }

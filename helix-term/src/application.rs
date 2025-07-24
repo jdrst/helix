@@ -1066,7 +1066,7 @@ impl Application {
                         let result = self.handle_show_document(params, offset_encoding);
                         Ok(json!(result))
                     }
-<                    Ok(MethodCall::WorkspaceDiagnosticRefresh) => {
+                    Ok(MethodCall::WorkspaceDiagnosticRefresh) => {
                         let language_server = language_server!().id();
 
                         let documents: Vec<_> = self
@@ -1085,7 +1085,8 @@ impl Application {
                             );
                         }
 
-                        Ok(serde_json::Value::Null)}
+                        Ok(serde_json::Value::Null)
+                    }
                     Ok(MethodCall::Other(event_name, params)) => {
                         let server_id = server_id;
 
