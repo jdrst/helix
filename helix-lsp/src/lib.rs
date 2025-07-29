@@ -464,6 +464,8 @@ pub enum MethodCall {
     UnregisterCapability(lsp::UnregistrationParams),
     ShowDocument(lsp::ShowDocumentParams),
     WorkspaceDiagnosticRefresh,
+    // Other kind specifically for extensions
+    Other(String, jsonrpc::Params),
 }
 
 impl MethodCall {
@@ -496,9 +498,7 @@ impl MethodCall {
                 Self::ShowDocument(params)
             }
             lsp::request::WorkspaceDiagnosticRefresh::METHOD => Self::WorkspaceDiagnosticRefresh,
-            _ => {
-                return Err(Error::Unhandled);
-            }
+            _ => Self::Other(method.to_owned(), params),
         };
         Ok(request)
     }
