@@ -31,16 +31,15 @@ pub fn setup(config: Arc<ArcSwap<Config>>) -> Handlers {
     let pull_diagnostics = PullDiagnosticsHandler::new().spawn();
     let pull_all_documents_diagnostics = PullAllDocumentsDiagnosticHandler::new().spawn();
     let word_index = word_index::Handler::spawn();
-
     let handlers = Handlers {
-completions: helix_view::handlers::completion::CompletionHandler::new(event_tx),
-signature_hints,
-auto_save,
-document_colors,
-pull_diagnostics,
-pull_all_documents_diagnostics,
-word_index,
-};
+    completions: helix_view::handlers::completion::CompletionHandler::new(event_tx),
+    signature_hints,
+    auto_save,
+    document_colors,
+    pull_diagnostics,
+    pull_all_documents_diagnostics,
+    word_index,
+    };
 
     helix_view::handlers::register_hooks(&handlers);
     completion::register_hooks(&handlers);
