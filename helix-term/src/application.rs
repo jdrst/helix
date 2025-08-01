@@ -1079,34 +1079,34 @@ impl Application {
 
                         Ok(serde_json::Value::Null)
                     }
-                    Ok(MethodCall::Other(event_name, params)) => {
-                        let server_id = server_id;
-
-                        let mut cx = crate::compositor::Context {
-                            editor: &mut self.editor,
-                            scroll: None,
-                            jobs: &mut self.jobs,
-                        };
-
-                        let reply = ScriptingEngine::handle_lsp_call(
-                            &mut cx,
-                            server_id,
-                            event_name,
-                            id.clone(),
-                            params,
-                        );
-
-                        if let Some(reply) = reply {
-                            let language_server = language_server!();
-                            if let Err(err) = language_server.reply(id.clone(), reply) {
-                                log::error!(
-                                    "Failed to send reply to server '{}' request {id}: {err}",
-                                    language_server.name()
-                                );
-                            }
-                        };
-                        return;
-                    }
+                     Ok(MethodCall::Other(event_name, params)) => {
+                         let server_id = server_id;
+ 
+                         let mut cx = crate::compositor::Context {
+                             editor: &mut self.editor,
+                             scroll: None,
+                             jobs: &mut self.jobs,
+                         };
+ 
+                         let reply = ScriptingEngine::handle_lsp_call(
+                             &mut cx,
+                             server_id,
+                             event_name,
+                             id.clone(),
+                             params,
+                         );
+ 
+                         if let Some(reply) = reply {
+                             let language_server = language_server!();
+                             if let Err(err) = language_server.reply(id.clone(), reply) {
+                                 log::error!(
+                                     "Failed to send reply to server '{}' request {id}: {err}",
+                                     language_server.name()
+                                 );
+                             }
+                         };
+                         return;
+                     }
                 };
 
                 let language_server = language_server!();

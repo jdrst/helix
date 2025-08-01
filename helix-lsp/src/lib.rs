@@ -498,7 +498,7 @@ impl MethodCall {
                 Self::ShowDocument(params)
             }
             lsp::request::WorkspaceDiagnosticRefresh::METHOD => Self::WorkspaceDiagnosticRefresh,
-            _ => Self::Other(method.to_owned(), params),
+             _ => Self::Other(method.to_owned(), params),
         };
         Ok(request)
     }
