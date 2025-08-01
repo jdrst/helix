@@ -40,7 +40,6 @@ pub fn setup(config: Arc<ArcSwap<Config>>) -> Handlers {
     pull_all_documents_diagnostics,
     word_index,
     };
-
     helix_view::handlers::register_hooks(&handlers);
     completion::register_hooks(&handlers);
     signature_help::register_hooks(&handlers);

@@ -214,7 +214,6 @@ pub struct Document {
     // large refactor that would make `&mut Editor` available on the `DocumentDidChange` event.
     pub color_swatch_controller: TaskController,
     pub uri: Option<Box<Url>>,
-
     pub pull_diagnostic_controller: TaskController,
 
     // NOTE: this field should eventually go away - we should use the Editor's syn_loader instead
